@@ -1,8 +1,9 @@
-# ComputedAttribute
+# computed_attribute
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/computed_attribute`. To experiment with that code, run `bin/console` for an interactive prompt.
+`computed_attribute` adds cached attributes to ActiveRecord models and automatically updates them when their components change.
 
-TODO: Delete this and the text above, and describe your gem
+## Status
+This is alpha software and is being actively developed. That said, we’ve been using it on production in a large Rails app without a hitch. Bug reports and pull requests are welcome!
 
 ## Installation
 
@@ -22,7 +23,49 @@ Or install it yourself as:
 
 ## Usage
 
-TODO: Write usage instructions here
+3 simple steps are required to wire up a computed attribute:
+
+1. Add a database column to store the value (e.g. `completed_at`)
+2. Include the module in your model and use the `computed_attribute` method to define the attribute
+3. Add a `computed_{attribute_name}` method to your model that will be used to calculate the value
+
+```ruby
+class Order
+  include ComputedAttribute::Core
+
+  has_many :logs
+
+  computed_attribute :completed, depends: :logs
+
+  def computed_completed
+    logs.find_by { |log| log.key == :completed }.present?
+  end
+end
+```
+
+Because we’ve indicated that the `completed` attribute depends on the `logs` association, `computed_attribute` will automatically re-calculate its value when any of the `Order`’s `logs` change or are added/deleted:
+
+```ruby
+order = Order.new
+order.completed #=> false
+order.logs.create(key: :completed)
+order.completed #=> true
+order.logs.destroy_all
+order.completed #=> false
+```
+
+That's all there is to it if your attributes are calculated based on the model's associations. If there's some non-association state that influences the attribute, you'll have to re-calculate it manually.
+
+You can call the `recompute` method at any point on a record or an entire model class to force a reclaculation:
+
+```ruby
+Order.recompute # recompute all computed attributes on all orders
+Order.recompute(:completed) # recompute just the `computed` attribute on all orders
+order.recompute # recompute all computed attributes on a single order
+order.recompute(:completed) # recompute just the `computed` attribute on a single order
+```
+
+If your non-association attribute can tolerate some staleness, you might consider putting the recomputation in a recurring background worker.
 
 ## Development
 

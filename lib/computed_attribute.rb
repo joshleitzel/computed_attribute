@@ -1,6 +1,4 @@
 require 'computed_attribute/version'
-require 'computed_attribute/active_record'
+require 'computed_attribute/core'
 
-module ComputedAttribute
-  # Your code goes here...
-end
+module ComputedAttribute; end
