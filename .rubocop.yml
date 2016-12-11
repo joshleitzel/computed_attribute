@@ -1,0 +1,21 @@
+Metrics/LineLength:
+  Max: 100
+  Severity: refactor
+Metrics/AbcSize:
+  Max: 300
+Metrics/PerceivedComplexity:
+  Max: 35
+Metrics/CyclomaticComplexity:
+  Max: 35
+Metrics/MethodLength:
+  Max: 50
+Metrics/ClassLength:
+  Max: 200
+Performance/Count:
+  Enabled: false
+Style/Documentation:
+  Enabled: false
+Style/ClassAndModuleChildren:
+  Enabled: false
+Style/RescueModifier:
+  Enabled: false

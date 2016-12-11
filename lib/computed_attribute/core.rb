@@ -38,33 +38,29 @@ module ComputedAttribute
         computed_attributes.each do |attribute, options|
           computed_method_name = "computed_#{attribute}"
           unless klass.instance_methods.include?(computed_method_name.to_sym)
-            raise NoMethodError, "Assigned computed attribute #{attribute}, but no method called `#{computed_method_name}` found"
+            raise NoMethodError, "Assigned computed attribute #{attribute}, "\
+              "but no method called `#{computed_method_name}` found"
           end
 
           dependencies = *options[:depends]
-          if dependencies.present?
-            dependencies.each do |dep|
-              p 'dep'
-              dep_association = parent_associations.find { |assoc| assoc.name == dep }
-              raise "Association #{dep} not found" if dep_association.nil?
+          next unless dependencies.present?
+          dependencies.each do |dep|
+            p 'dep'
+            dep_association = parent_associations.find { |assoc| assoc.name == dep }
+            raise "Association #{dep} not found" if dep_association.nil?
 
-              p "add child callbacks: #{dep_association.klass.name}"
+            p "add child callbacks: #{dep_association.klass.name}"
 
-              dep_association.klass.after_save do
-                p "child #{self.class} saved (parent: #{parent_name})"
-                parent = send(parent_name)
-                if parent.present?
-                  parent.reload.recompute(attribute)
-                end
-              end
+            dep_association.klass.after_save do
+              p "child #{self.class} saved (parent: #{parent_name})"
+              parent = send(parent_name)
+              parent.reload.recompute(attribute) if parent.present?
+            end
 
-              dep_association.klass.after_destroy do
-                p "child #{self.class} destroyed (parent: #{parent_name})"
-                parent = send(parent_name)
-                if parent.present?
-                  parent.recompute(attribute)
-                end
-              end
+            dep_association.klass.after_destroy do
+              p "child #{self.class} destroyed (parent: #{parent_name})"
+              parent = send(parent_name)
+              parent.recompute(attribute) if parent.present?
             end
           end
         end
@@ -83,11 +79,11 @@ module ComputedAttribute
           update_options = {}
           value = send("computed_#{attribute}")
           update_options[attribute] = value
-          updated = update_columns(update_options)
+          update_columns(update_options)
           p "updated #{attribute}: #{value}"
         end
       else
-        attributes.each { |attribute| recompute(attribute) }
+        attributes.each { |attr| recompute(attr) }
       end
     end
   end

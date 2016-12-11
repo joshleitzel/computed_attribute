@@ -9,20 +9,20 @@ describe ComputedAttribute do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create
       expect(galaxy).to receive(:recompute).exactly(1).with(:system_count)
-      system = galaxy.solar_systems.create
+      galaxy.solar_systems.create
     end
 
     it 'updates when a child item is saved' do
       galaxy = Galaxy.create
       expect(galaxy.system_count).to eq(0)
-      system = galaxy.solar_systems.create
+      galaxy.solar_systems.create
       expect(galaxy.system_count).to eq(1)
     end
 
     it 'updates when a child item is created' do
       galaxy = Galaxy.create
       expect(galaxy.system_count).to eq(0)
-      system = galaxy.solar_systems.create
+      galaxy.solar_systems.create
       expect(galaxy.system_count).to eq(1)
     end
 
@@ -41,6 +41,5 @@ describe ComputedAttribute do
   end
 
   describe 'belongs_to' do
-
   end
 end
