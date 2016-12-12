@@ -29,7 +29,6 @@ module ComputedAttribute
 
         p "#{klass}: set up #{model_name}"
 
-        p host_associations.map(&:type)
         klass.after_create do |host|
           p "#{klass}: host #{model_name} created"
           host.recompute(:all)
@@ -49,12 +48,12 @@ module ComputedAttribute
             raise "Association #{dep} not found" if dep_association.nil?
             p "#{klass}: wiring up association #{dep}: #{dep_association}"
 
-            if dep_association.belongs_to?
+            case dep_association
+            when ActiveRecord::Reflection::BelongsToReflection
               parent_class = dep_association.klass
-              p "#{klass}: add host callbacks: #{parent_class.name}"
+              p "#{klass}: (belongs_to) add host callbacks: #{parent_class.name}"
 
               parent_class.after_save do
-                # p dep_association
                 p "#{klass}: first try host is #{model_name}"
                 host_name = if dep_association.inverse_of.present?
                               p 'inverse!'
@@ -81,9 +80,33 @@ module ComputedAttribute
                   record.reload.recompute(attribute)
                 end
               end
-            else
+            when ActiveRecord::Reflection::HasManyReflection
               child_class = dep_association.klass
-              p "#{klass}: add child callbacks: #{child_class.name}"
+              p "#{klass} (has_many): add child callbacks: #{child_class.name}"
+
+              child_class.after_save do
+                host_name = if dep_association.inverse_of.present?
+                              dep_association.inverse_of.plural_name
+                            else
+                              respond_to?(model_name) ? model_name : model_name.pluralize
+                            end
+                host_name = host_name.singularize unless respond_to?(host_name)
+                p "#{klass}: child #{self.class} saved (host: #{host_name})"
+
+                if respond_to?(host_name)
+                  host = send(host_name)
+                  host.reload.recompute(attribute) if host.present?
+                end
+              end
+
+              child_class.after_destroy do
+                p "#{klass}: child #{self.class} destroyed (host: #{model_name})"
+                host = send(model_name)
+                host.recompute(attribute) if host.present?
+              end
+            when ActiveRecord::Reflection::ThroughReflection
+              child_class = dep_association.through_reflection.klass
+              p "#{klass} (through): add child callbacks: #{child_class.name}"
 
               child_class.after_save do
                 host_name = if dep_association.inverse_of.present?

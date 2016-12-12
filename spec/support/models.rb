@@ -7,10 +7,12 @@ class Galaxy < Model
   has_many :solar_systems
   has_many :stars, through: :solar_systems
   has_many :holes, class_name: 'BlackHole'
+  has_many :points_of_no_return, through: :holes, source: :event_horizon
 
   computed_attribute :star_count, depends: :stars
   computed_attribute :solar_system_count, depends: :solar_systems
   computed_attribute :black_hole_count, depends: :holes
+  computed_attribute :horizon_count, depends: :points_of_no_return
 
   def computed_star_count
     stars.count
@@ -23,10 +25,19 @@ class Galaxy < Model
   def computed_black_hole_count
     holes.count
   end
+
+  def computed_horizon_count
+    points_of_no_return.count
+  end
 end
 
 class BlackHole < Model
   belongs_to :galaxy
+  has_one :event_horizon
+end
+
+class EventHorizon < Model
+  belongs_to :black_hole
 end
 
 class SolarSystem < Model

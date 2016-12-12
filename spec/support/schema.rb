@@ -5,6 +5,7 @@ ActiveRecord::Schema.define do
     t.integer :solar_system_count, default: 0
     t.integer :star_count, default: 0
     t.integer :black_hole_count, default: 0
+    t.integer :horizon_count, default: 0
     t.string :name
     t.timestamps
   end
@@ -39,6 +40,11 @@ ActiveRecord::Schema.define do
 
   create_table :black_holes, force: true do |t|
     t.integer :galaxy_id
+    t.timestamps
+  end
+
+  create_table :event_horizons, force: true do |t|
+    t.integer :black_hole_id
     t.timestamps
   end
 end

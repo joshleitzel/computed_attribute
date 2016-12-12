@@ -8,7 +8,8 @@ describe ComputedAttribute do
   describe 'has_many' do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create
-      expect(galaxy).to receive(:recompute).exactly(1).with(:solar_system_count)
+      expect(galaxy).to receive(:computed_solar_system_count).exactly(1)
+      expect(galaxy).to receive(:computed_star_count).exactly(1)
       galaxy.solar_systems.create
     end
 
@@ -55,13 +56,43 @@ describe ComputedAttribute do
     end
   end
 
-  describe 'belongs_to' do
-    it 'does not make duplicate recompute calls' do
+  describe 'has_many :through' do
+    it 'updates when child saved' do
       galaxy = Galaxy.create
-      expect(galaxy).to receive(:recompute).exactly(1).with(:solar_system_count)
-      galaxy.solar_systems.create
+      expect(galaxy.star_count).to eq(0)
+      galaxy.solar_systems.create(star: Star.new)
+      expect(galaxy.reload.star_count).to eq(1)
     end
 
+    it 'updates when child created' do
+      galaxy = Galaxy.create
+      expect(galaxy.star_count).to eq(0)
+      galaxy.solar_systems.create(star: Star.new)
+      expect(galaxy.star_count).to eq(1)
+    end
+
+    it 'updates when parent created' do
+      galaxy = Galaxy.create(solar_systems: [SolarSystem.new(star: Star.new), SolarSystem.new])
+      expect(galaxy.star_count).to eq(1)
+    end
+
+    it 'updates when child destroyed' do
+      system = SolarSystem.create(star: Star.new)
+      galaxy = Galaxy.create(solar_systems: [system])
+      expect(galaxy.star_count).to eq(1)
+      system.destroy
+      expect(galaxy.reload.star_count).to eq(0)
+    end
+
+    it 'updates with custom association name and :source' do
+      galaxy = Galaxy.create
+      expect(galaxy.horizon_count).to eq(0)
+      galaxy.holes.create(event_horizon: EventHorizon.new)
+      expect(galaxy.horizon_count).to eq(1)
+    end
+  end
+
+  describe 'belongs_to' do
     it 'updates when parent saved' do
       galaxy = Galaxy.create
       system = SolarSystem.create(galaxy: galaxy)
