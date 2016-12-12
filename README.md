@@ -1,9 +1,14 @@
 # computed_attribute
 
-`computed_attribute` adds cached attributes to ActiveRecord models and automatically updates them when their components change.
+ComputedAttribute adds cached attributes to ActiveRecord models and automatically updates them when their values change through a model’s associations. It allows you to cut down on expensive database queries by storing computed attributes directly in the record.
 
 ## Status
 This is alpha software and is being actively developed. That said, we’ve been using it on production in a large Rails app without a hitch. Bug reports and pull requests are welcome!
+
+## Features
+* Works with all ActiveRecord association types
+* Manually recompute a value when not using associations
+* No monkey patching
 
 ## Installation
 
@@ -30,7 +35,7 @@ Or install it yourself as:
 3. Add a `computed_{attribute_name}` method to your model that will be used to calculate the value
 
 ```ruby
-class Order
+class Order < ActiveRecord::Base
   include ComputedAttribute::Core
 
   has_many :logs
@@ -43,7 +48,7 @@ class Order
 end
 ```
 
-Because we’ve indicated that the `completed` attribute depends on the `logs` association, `computed_attribute` will automatically re-calculate its value when any of the `Order`’s `logs` change or are added/deleted:
+Because we’ve indicated that the `completed` attribute depends on the `logs` association, ComputedAttribute will automatically re-calculate its value when any of the `Order`’s `logs` change or are added/deleted:
 
 ```ruby
 order = Order.new
@@ -54,15 +59,13 @@ order.logs.destroy_all
 order.completed #=> false
 ```
 
-That's all there is to it if your attributes are calculated based on the model's associations. If there's some non-association state that influences the attribute, you'll have to re-calculate it manually.
-
-You can call the `recompute` method at any point on a record or an entire model class to force a reclaculation:
+That’s all there is to it if your attributes are calculated based on the model’s associations. If there’s some non-association state that influences the attribute, you can re-calculate it manually using the `recompute` method:
 
 ```ruby
-Order.recompute # recompute all computed attributes on all orders
-Order.recompute(:completed) # recompute just the `computed` attribute on all orders
-order.recompute # recompute all computed attributes on a single order
-order.recompute(:completed) # recompute just the `computed` attribute on a single order
+Order.recompute(:all) # recompute all computed attributes on all orders
+Order.recompute(:completed) # recompute just the `completed` attribute on all orders
+order.recompute(:all) # recompute all computed attributes on a single order
+order.recompute(:completed) # recompute just the `completed` attribute on a single order
 ```
 
 If your non-association attribute can tolerate some staleness, you might consider putting the recomputation in a recurring background worker.
@@ -77,8 +80,6 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/computed_attribute. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
-
 ## License
 
 The gem is available as open source under the terms of the [MIT License](http://opensource.org/licenses/MIT).
-
