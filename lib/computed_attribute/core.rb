@@ -103,8 +103,9 @@ module ComputedAttribute
                 host.reload.recompute(attribute) if host.present?
               end
             when ActiveRecord::Reflection::ThroughReflection
+              grandchild_class = dep_association.klass
               child_class = dep_association.through_reflection.klass
-              p "#{klass} (through): add child callbacks: #{child_class.name}"
+              p "#{klass} (through): add child callbacks: #{child_class} -> #{grandchild_class}"
 
               child_class.after_save do
                 host_name = assoc_name.call(dep_association, self)

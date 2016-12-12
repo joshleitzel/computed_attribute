@@ -4,6 +4,7 @@ ActiveRecord::Schema.define do
   create_table :galaxies, force: true do |t|
     t.integer :solar_system_count, default: 0
     t.integer :star_count, default: 0
+    t.integer :red_dwarf_count, default: 0
     t.integer :black_hole_count, default: 0
     t.integer :horizon_count, default: 0
     t.string :name
@@ -31,6 +32,7 @@ ActiveRecord::Schema.define do
     t.integer :gas_ball_id
     t.string :star_classification
     t.string :classification
+    t.integer :stratosphere_height
     t.timestamps
   end
 
@@ -46,6 +48,17 @@ ActiveRecord::Schema.define do
 
   create_table :event_horizons, force: true do |t|
     t.integer :black_hole_id
+    t.timestamps
+  end
+
+  create_table :atmospheres, force: true do |t|
+    t.integer :planet_id
+    t.timestamps
+  end
+
+  create_table :stratospheres, force: true do |t|
+    t.integer :atmosphere_id
+    t.integer :height
     t.timestamps
   end
 end

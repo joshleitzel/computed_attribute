@@ -10,6 +10,7 @@ class Galaxy < Model
   has_many :points_of_no_return, through: :holes, source: :event_horizon
 
   computed_attribute :star_count, depends: :stars
+  computed_attribute :red_dwarf_count, depends: :stars
   computed_attribute :solar_system_count, depends: :solar_systems
   computed_attribute :black_hole_count, depends: :holes
   computed_attribute :horizon_count, depends: :points_of_no_return
@@ -29,6 +30,10 @@ class Galaxy < Model
   def computed_horizon_count
     points_of_no_return.count
   end
+
+  def computed_red_dwarf_count
+    stars.where(classification: 'red_dwarf').count
+  end
 end
 
 class BlackHole < Model
@@ -43,7 +48,7 @@ end
 class SolarSystem < Model
   include ComputedAttribute::Core
   belongs_to :galaxy
-  has_one :star, inverse_of: :system # I know there are multi-star systems, just need to test a has_one :(
+  has_one :star, inverse_of: :system
 
   computed_attribute :galaxy_name, depends: :galaxy
   computed_attribute :star_classification, depends: :star
@@ -78,11 +83,19 @@ class Planet < Model
   include ComputedAttribute::Core
   belongs_to :gas_ball, class_name: 'Star', inverse_of: :rocks
   has_and_belongs_to_many :neighbors
+  has_many :moons
+  has_one :atmosphere
+  has_one :stratosphere, through: :atmosphere
 
   computed_attribute :star_classification, depends: :gas_ball
+  computed_attribute :stratosphere_height, depends: :stratosphere
 
   def computed_star_classification
     gas_ball.try(:classification)
+  end
+
+  def computed_stratosphere_height
+    stratosphere.try(:height)
   end
 end
 
@@ -90,4 +103,13 @@ class Neighbor < Model; end
 
 class Moon < Model
   belongs_to :planet
+end
+
+class Atmosphere < Model
+  belongs_to :planet
+  has_one :stratosphere
+end
+
+class Stratosphere < Model
+  belongs_to :atmosphere
 end

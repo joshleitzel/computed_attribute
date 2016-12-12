@@ -90,6 +90,23 @@ describe ComputedAttribute do
       galaxy.holes.create(event_horizon: EventHorizon.new)
       expect(galaxy.horizon_count).to eq(1)
     end
+
+    it 'updates when grandchild saved' do
+      star = Star.new
+      galaxy = Galaxy.create(solar_systems: [SolarSystem.new(star: star)])
+      expect(galaxy.red_dwarf_count).to eq(0)
+      star.update(classification: 'red_dwarf')
+      expect(galaxy.reload.red_dwarf_count).to eq(1)
+    end
+
+    it 'updates when grandchild destroyed' do
+      star = Star.new(classification: 'red_dwarf')
+      galaxy = Galaxy.create(solar_systems: [SolarSystem.new(star: star)])
+      expect(galaxy.red_dwarf_count).to eq(1)
+      star.update(classification: 'red_dwarf')
+      star.destroy
+      expect(galaxy.reload.red_dwarf_count).to eq(0)
+    end
   end
 
   describe 'has_one' do
@@ -123,7 +140,50 @@ describe ComputedAttribute do
   end
 
   describe 'has_one :through' do
+    it 'updates when parent created' do
+      planet = Planet.create(atmosphere: Atmosphere.new(stratosphere: Stratosphere.new(height: 10)))
+      expect(planet.stratosphere_height).to eq(10)
+    end
 
+    it 'updates when child created' do
+      planet = Planet.create
+      planet.create_atmosphere(stratosphere: Stratosphere.new(height: 10))
+      expect(planet.stratosphere_height).to eq(10)
+    end
+
+    it 'updates when child saved' do
+      atmosphere = Atmosphere.create(stratosphere: Stratosphere.new(height: 10))
+      planet = Planet.create(atmosphere: atmosphere)
+      expect(planet.stratosphere_height).to eq(10)
+      atmosphere.update(stratosphere: Stratosphere.new(height: 11))
+      expect(planet.stratosphere_height).to eq(11)
+    end
+
+    it 'updates when child destroyed' do
+      atmosphere = Atmosphere.create(stratosphere: Stratosphere.new(height: 10))
+      planet = Planet.create(atmosphere: atmosphere)
+      expect(planet.stratosphere_height).to eq(10)
+      atmosphere.destroy
+      expect(planet.stratosphere_height).to be_nil
+    end
+
+    it 'updates when grandchild saved' do
+      stratosphere = Stratosphere.create(height: 10)
+      atmosphere = Atmosphere.create(stratosphere: stratosphere)
+      planet = Planet.create(atmosphere: atmosphere)
+      expect(planet.stratosphere_height).to eq(10)
+      stratosphere.update(height: 11)
+      expect(planet.reload.stratosphere_height).to eq(11)
+    end
+
+    it 'updates when grandchild destroyed' do
+      stratosphere = Stratosphere.create(height: 10)
+      atmosphere = Atmosphere.create(stratosphere: stratosphere)
+      planet = Planet.create(atmosphere: atmosphere)
+      expect(planet.stratosphere_height).to eq(10)
+      stratosphere.destroy
+      expect(planet.reload.stratosphere_height).to be_nil
+    end
   end
 
   describe 'belongs_to' do
