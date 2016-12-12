@@ -34,6 +34,16 @@ module ComputedAttribute
           host.recompute(:all)
         end
 
+        assoc_name = proc do |association, obj|
+          host_name = if association.inverse_of.present?
+                        plural = association.inverse_of.plural_name
+                        obj.respond_to?(plural) ? plural : plural.singularize
+                      else
+                        obj.respond_to?(model_name) ? model_name : model_name.pluralize
+                      end
+          obj.respond_to?(host_name) ? host_name : host_name.pluralize
+        end
+
         computed_attributes.each do |attribute, options|
           computed_method_name = "computed_#{attribute}"
           unless klass.instance_methods.include?(computed_method_name.to_sym)
@@ -54,16 +64,8 @@ module ComputedAttribute
               p "#{klass}: (belongs_to) add host callbacks: #{parent_class.name}"
 
               parent_class.after_save do
-                p "#{klass}: first try host is #{model_name}"
-                host_name = if dep_association.inverse_of.present?
-                              p 'inverse!'
-                              plural = dep_association.inverse_of.plural_name
-                              respond_to?(plural) ? plural : plural.singularize
-                            else
-                              respond_to?(model_name) ? model_name : model_name.pluralize
-                            end
-                host_name = respond_to?(host_name) ? host_name : host_name.pluralize
-                p "#{klass}: parent #{self.class} saved (host: #{model_name})"
+                host_name = assoc_name.call(dep_association, self)
+                p "#{klass}: parent #{self.class} saved (host: #{host_name})"
                 if respond_to?(host_name)
                   host = Array(reload.send(host_name))
                   Array(host).each do |record|
@@ -73,24 +75,19 @@ module ComputedAttribute
               end
 
               parent_class.after_destroy do
-                host_name = respond_to?(model_name) ? model_name : model_name.pluralize
-                p "#{klass}: parent #{self.class} destroyed (host: #{model_name})"
+                host_name = assoc_name.call(dep_association, self)
+                p "#{klass}: parent #{self.class} destroyed (host: #{host_name})"
                 host = Array(send(host_name))
                 Array(host).each do |record|
                   record.reload.recompute(attribute)
                 end
               end
-            when ActiveRecord::Reflection::HasManyReflection
+            when ActiveRecord::Reflection::HasManyReflection, ActiveRecord::Reflection::HasOneReflection
               child_class = dep_association.klass
               p "#{klass} (has_many): add child callbacks: #{child_class.name}"
 
               child_class.after_save do
-                host_name = if dep_association.inverse_of.present?
-                              dep_association.inverse_of.plural_name
-                            else
-                              respond_to?(model_name) ? model_name : model_name.pluralize
-                            end
-                host_name = host_name.singularize unless respond_to?(host_name)
+                host_name = assoc_name.call(dep_association, self)
                 p "#{klass}: child #{self.class} saved (host: #{host_name})"
 
                 if respond_to?(host_name)
@@ -101,20 +98,16 @@ module ComputedAttribute
 
               child_class.after_destroy do
                 p "#{klass}: child #{self.class} destroyed (host: #{model_name})"
-                host = send(model_name)
-                host.recompute(attribute) if host.present?
+                host_name = assoc_name.call(dep_association, self)
+                host = send(host_name)
+                host.reload.recompute(attribute) if host.present?
               end
             when ActiveRecord::Reflection::ThroughReflection
               child_class = dep_association.through_reflection.klass
               p "#{klass} (through): add child callbacks: #{child_class.name}"
 
               child_class.after_save do
-                host_name = if dep_association.inverse_of.present?
-                              dep_association.inverse_of.plural_name
-                            else
-                              respond_to?(model_name) ? model_name : model_name.pluralize
-                            end
-                host_name = host_name.singularize unless respond_to?(host_name)
+                host_name = assoc_name.call(dep_association, self)
                 p "#{klass}: child #{self.class} saved (host: #{host_name})"
 
                 if respond_to?(host_name)
@@ -124,9 +117,10 @@ module ComputedAttribute
               end
 
               child_class.after_destroy do
-                p "#{klass}: child #{self.class} destroyed (host: #{model_name})"
+                host_name = assoc_name.call(dep_association, self)
+                p "#{klass}: child #{self.class} destroyed (host: #{host_name})"
                 host = send(model_name)
-                host.recompute(attribute) if host.present?
+                host.reload.recompute(attribute) if host.present?
               end
             end
           end
@@ -137,7 +131,7 @@ module ComputedAttribute
     end
 
     def recompute(*attributes)
-      p "recompute: #{attributes}"
+      p "#{self.class.name}: recompute: #{attributes}"
       if attributes.count == 1
         attribute = attributes.first
         if attribute == :all
@@ -147,7 +141,7 @@ module ComputedAttribute
           value = send("computed_#{attribute}")
           update_options[attribute] = value
           update_columns(update_options)
-          p "updated #{attribute}: #{value}"
+          p "#{self.class.name}: updated #{attribute}: #{value}"
         end
       else
         attributes.each { |attr| recompute(attr) }

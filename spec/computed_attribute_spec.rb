@@ -92,6 +92,40 @@ describe ComputedAttribute do
     end
   end
 
+  describe 'has_one' do
+    it 'updates when parent created' do
+      system = SolarSystem.create(star: Star.new(classification: 'red_giant'))
+      expect(system.star_classification).to eq('red_giant')
+    end
+
+    it 'updates when child created' do
+      system = SolarSystem.create
+      expect(system.star_classification).to be_nil
+      system.create_star(classification: 'red_giant')
+      expect(system.reload.star_classification).to eq('red_giant')
+    end
+
+    it 'updates when child saved' do
+      star = Star.new
+      system = SolarSystem.create(star: star)
+      expect(system.star_classification).to be_nil
+      star.update(classification: 'red_giant')
+      expect(system.reload.star_classification).to eq('red_giant')
+    end
+
+    it 'updates when child destroyed' do
+      star = Star.new(classification: 'red_giant')
+      system = SolarSystem.create(star: star)
+      expect(system.star_classification).to eq('red_giant')
+      star.destroy
+      expect(system.reload.star_classification).to be_nil
+    end
+  end
+
+  describe 'has_one :through' do
+
+  end
+
   describe 'belongs_to' do
     it 'updates when parent saved' do
       galaxy = Galaxy.create

@@ -43,18 +43,23 @@ end
 class SolarSystem < Model
   include ComputedAttribute::Core
   belongs_to :galaxy
-  has_one :star # I know there are multi-star systems, just need to test a has_one :(
+  has_one :star, inverse_of: :system # I know there are multi-star systems, just need to test a has_one :(
 
   computed_attribute :galaxy_name, depends: :galaxy
+  computed_attribute :star_classification, depends: :star
 
   def computed_galaxy_name
     galaxy.try(:name)
+  end
+
+  def computed_star_classification
+    star.try(:classification)
   end
 end
 
 class Star < Model
   include ComputedAttribute::Core
-  belongs_to :system, class_name: 'SolarSystem', foreign_key: 'solar_system_id'
+  belongs_to :system, class_name: 'SolarSystem', inverse_of: :star, foreign_key: 'solar_system_id'
   has_many :rocks, class_name: 'Planet', foreign_key: 'gas_ball_id', inverse_of: :gas_ball
 
   computed_attribute :system_sector, depends: :system

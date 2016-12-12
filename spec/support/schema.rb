@@ -14,6 +14,7 @@ ActiveRecord::Schema.define do
     t.integer :galaxy_id
     t.string :galaxy_name
     t.string :sector
+    t.string :star_classification
     t.timestamps
   end
 
