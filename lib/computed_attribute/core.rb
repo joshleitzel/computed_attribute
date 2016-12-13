@@ -1,6 +1,12 @@
 require 'active_support'
 
 module ComputedAttribute
+  module Error
+    class Error < StandardError; end
+
+    class InvalidAttributeError < Error; end
+  end
+
   module Core
     extend ActiveSupport::Concern
 
@@ -14,6 +20,10 @@ module ComputedAttribute
       attr_accessor :computed_attributes, :processed, :model
 
       def computed_attribute(attribute, options = {})
+        if attribute == :all
+          raise Error::InvalidAttributeError, ':all is a reserved word and cannot be used as an attribute name'
+        end
+
         options[:model] = model
         return if computed_attributes.map(&:attribute).include?(attribute)
         (computed_attributes << Attribute.new(attribute, options)).uniq!

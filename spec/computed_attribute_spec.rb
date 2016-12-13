@@ -5,6 +5,19 @@ describe ComputedAttribute do
     expect(ComputedAttribute::VERSION).not_to be nil
   end
 
+  it 'does not allow an attribute named :all' do
+    expect do
+      class Test < Model
+        include ComputedAttribute::Core
+
+        computed_attribute :all
+      end
+    end.to raise_error(
+      ComputedAttribute::Error::InvalidAttributeError,
+      ':all is a reserved word and cannot be used as an attribute name'
+    )
+  end
+
   describe 'has_many' do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create
