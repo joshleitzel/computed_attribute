@@ -90,7 +90,7 @@ module ComputedAttribute
       def set_up
         computed_method_name = "computed_#{attribute}"
         unless model_klass.instance_methods.include?(computed_method_name.to_sym)
-          raise NoMethodError, "Assigned computed attribute #{attribute}, "\
+          raise NoMethodError, "Assigned computed attribute `#{attribute}`, "\
             "but no method called `#{computed_method_name}` found"
         end
 

@@ -18,6 +18,19 @@ describe ComputedAttribute do
     )
   end
 
+  it 'raises an error when missing the compute method' do
+    expect do
+      class Test < Model
+        include ComputedAttribute::Core
+
+        computed_attribute :missing
+      end
+    end.to raise_error(
+      NoMethodError,
+      'Assigned computed attribute `missing`, but no method called `computed_missing` found'
+    )
+  end
+
   describe 'has_many' do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create
