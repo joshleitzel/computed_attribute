@@ -62,13 +62,31 @@ class SolarSystem < Model
   end
 end
 
+class GravitationalField < Model
+  include ComputedAttribute::Core
+  belongs_to :gravitational, polymorphic: true
+
+  computed_attribute :emanates_from_planet, depends: :gravitational
+  computed_attribute :has_star, depends: :gravitational
+
+  def computed_emanates_from_planet
+    gravitational.is_a?(Planet)
+  end
+
+  def computed_has_star
+    gravitational.try(:gas_ball).present?
+  end
+end
+
 class Star < Model
   include ComputedAttribute::Core
   belongs_to :system, class_name: 'SolarSystem', inverse_of: :star, foreign_key: 'solar_system_id'
   has_many :rocks, class_name: 'Planet', foreign_key: 'gas_ball_id', inverse_of: :gas_ball
+  has_one :gravitational_field, as: :gravitational
 
   computed_attribute :system_sector, depends: :system
   computed_attribute :gas_giant_count, depends: :rocks
+  computed_attribute :gravitational_field_radius, depends: :gravitational_field
 
   def computed_system_sector
     system.try(:sector)
@@ -77,18 +95,24 @@ class Star < Model
   def computed_gas_giant_count
     rocks.where(classification: 'gas_giant').count
   end
+
+  def computed_gravitational_field_radius
+    gravitational_field.try(:radius)
+  end
 end
 
 class Planet < Model
   include ComputedAttribute::Core
   belongs_to :gas_ball, class_name: 'Star', inverse_of: :rocks
-  has_and_belongs_to_many :neighbors
+  # has_and_belongs_to_many :neighbors
   has_many :moons
   has_one :atmosphere
   has_one :stratosphere, through: :atmosphere
+  has_many :gravitational_fields, as: :gravitational
 
   computed_attribute :star_classification, depends: :gas_ball
   computed_attribute :stratosphere_height, depends: :stratosphere
+  computed_attribute :gravitational_field_radius_sum, depends: :gravitational_fields
 
   def computed_star_classification
     gas_ball.try(:classification)
@@ -97,12 +121,17 @@ class Planet < Model
   def computed_stratosphere_height
     stratosphere.try(:height)
   end
+
+  def computed_gravitational_field_radius_sum
+    gravitational_fields.sum(:radius)
+  end
 end
 
 class Neighbor < Model; end
 
 class Moon < Model
   belongs_to :planet
+  has_one :gravitational_field, as: :gravitational
 end
 
 class Atmosphere < Model

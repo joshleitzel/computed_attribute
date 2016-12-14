@@ -3,8 +3,7 @@ require 'computed_attribute/reflection'
 module ComputedAttribute
   class BelongsToReflection < Reflection
     def set_up
-      parent_class = association.klass
-      p "#{host}: (belongs_to) add host callbacks: #{parent_class.name}"
+      p "#{host}: (belongs_to) add host callbacks: #{association.class_name}"
 
       cb = proc do |klass, host_name, attribute|
         proc do
@@ -15,8 +14,18 @@ module ComputedAttribute
           end
         end
       end
-      opposite_class.after_save(cb.call(host, opposite_name, attribute))
-      opposite_class.after_destroy(cb.call(host, opposite_name, attribute))
+
+      if polymorphic?
+        cb = proc do |attribute|
+          proc { reload.recompute(attribute) }
+        end
+        host.after_save(cb.call(attribute))
+      else
+        opposite_class.after_save(cb.call(host, opposite_name, attribute))
+        opposite_class.after_destroy(cb.call(host, opposite_name, attribute))
+      end
+
+      self
     end
   end
 end

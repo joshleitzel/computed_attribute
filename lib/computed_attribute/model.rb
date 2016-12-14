@@ -14,13 +14,15 @@ module ComputedAttribute
     def set_up
       model_name = klass.name.demodulize.underscore
 
-      klass = @klass
       p "#{klass}: set up #{model_name}"
 
-      klass.after_create do |host|
-        p "#{klass}: host #{model_name} created"
-        host.recompute(:all)
+      cb = proc do |klass|
+        proc do |host|
+          p "#{klass}: host #{model_name} created"
+          host.recompute(:all)
+        end
       end
+      klass.after_create(cb.call(klass))
 
       attributes.each(&:set_up)
     end

@@ -24,6 +24,8 @@ ActiveRecord::Schema.define do
     t.string :system_sector
     t.string :classification
     t.integer :gas_giant_count
+    t.integer :gravitational_id
+    t.integer :gravitational_field_radius
     t.timestamps
   end
 
@@ -33,6 +35,8 @@ ActiveRecord::Schema.define do
     t.string :star_classification
     t.string :classification
     t.integer :stratosphere_height
+    t.integer :gravitational_id
+    t.integer :gravitational_field_radius_sum
     t.timestamps
   end
 
@@ -59,6 +63,14 @@ ActiveRecord::Schema.define do
   create_table :stratospheres, force: true do |t|
     t.integer :atmosphere_id
     t.integer :height
+    t.timestamps
+  end
+
+  create_table :gravitational_fields, force: true do |t|
+    t.references :gravitational, polymorphic: true
+    t.integer :radius
+    t.boolean :emanates_from_planet
+    t.boolean :has_star
     t.timestamps
   end
 end

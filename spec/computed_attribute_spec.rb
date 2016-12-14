@@ -111,6 +111,36 @@ describe ComputedAttribute do
     end
   end
 
+  describe 'has_many polymorphic' do
+    it 'updates when parent saved' do
+      planet = Planet.create(gravitational_fields: [GravitationalField.new(radius: 5), GravitationalField.new(radius: 10)])
+      expect(planet.reload.gravitational_field_radius_sum).to eq(15)
+    end
+
+    it 'updates when child created' do
+      planet = Planet.create
+      expect(planet.gravitational_field_radius_sum).to eq(0)
+      planet.gravitational_fields.create(radius: 5)
+      expect(planet.reload.gravitational_field_radius_sum).to eq(5)
+    end
+
+    it 'updates when child saved' do
+      gravitational_field = GravitationalField.create
+      planet = Planet.create(gravitational_fields: [gravitational_field])
+      expect(planet.gravitational_field_radius_sum).to eq(0)
+      gravitational_field.update(radius: 5)
+      expect(planet.reload.gravitational_field_radius_sum).to eq(5)
+    end
+
+    it 'updates when child destroyed' do
+      gravitational_field = GravitationalField.create(radius: 5)
+      planet = Planet.create(gravitational_fields: [gravitational_field])
+      expect(planet.reload.gravitational_field_radius_sum).to eq(5)
+      gravitational_field.destroy
+      expect(planet.reload.gravitational_field_radius_sum).to eq(0)
+    end
+  end
+
   describe 'has_one' do
     it 'updates when parent created' do
       system = SolarSystem.create(star: Star.new(classification: 'red_giant'))
@@ -190,6 +220,36 @@ describe ComputedAttribute do
     end
   end
 
+  describe 'has_one polymorphic' do
+    it 'updates when parent saved' do
+      star = Star.create(gravitational_field: GravitationalField.new(radius: 5))
+      expect(star.gravitational_field_radius).to eq(5)
+    end
+
+    it 'updates when child created' do
+      star = Star.create
+      expect(star.gravitational_field_radius).to be_nil
+      star.create_gravitational_field(radius: 5)
+      expect(star.reload.gravitational_field_radius).to eq(5)
+    end
+
+    it 'updates when child saved' do
+      gravitational_field = GravitationalField.create
+      star = Star.create(gravitational_field: gravitational_field)
+      expect(star.gravitational_field_radius).to be_nil
+      gravitational_field.update(radius: 5)
+      expect(star.reload.gravitational_field_radius).to eq(5)
+    end
+
+    it 'updates when child destroyed' do
+      gravitational_field = GravitationalField.create(radius: 5)
+      star = Star.create(gravitational_field: gravitational_field)
+      expect(star.reload.gravitational_field_radius).to eq(5)
+      gravitational_field.destroy
+      expect(star.reload.gravitational_field_radius).to be_nil
+    end
+  end
+
   describe 'belongs_to' do
     it 'updates when parent saved' do
       galaxy = Galaxy.create
@@ -218,6 +278,37 @@ describe ComputedAttribute do
       planet = Planet.create(gas_ball: star)
       star.update(classification: 'red_dwarf')
       expect(planet.reload.star_classification).to eq('red_dwarf')
+    end
+  end
+
+  describe 'belongs to polymorphic' do
+    it 'updates when parent created' do
+      planet = Planet.create
+      gravitational_field = GravitationalField.create(gravitational: planet)
+      expect(gravitational_field.emanates_from_planet?).to eq(true)
+    end
+
+    it 'updates when self saved' do
+      planet = Planet.create
+      gravitational_field = GravitationalField.create
+      gravitational_field.update(gravitational: planet)
+      expect(gravitational_field.reload.emanates_from_planet?).to eq(true)
+    end
+
+    it 'updates when parent saved' do
+      planet = Planet.create(gas_ball: Star.new)
+      gravitational_field = GravitationalField.create(gravitational: planet)
+      expect(gravitational_field.has_star?).to eq(true)
+      planet.update(gas_ball: nil)
+      expect(gravitational_field.reload.has_star?).to eq(false)
+    end
+
+    it 'updates when parent destroyed' do
+      planet = Planet.create(gas_ball: Star.new)
+      gravitational_field = GravitationalField.create(gravitational: planet)
+      expect(gravitational_field.has_star?).to eq(true)
+      planet.destroy
+      expect(gravitational_field.reload.has_star?).to eq(false)
     end
   end
 end

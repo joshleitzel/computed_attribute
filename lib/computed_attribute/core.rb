@@ -35,6 +35,8 @@ module ComputedAttribute
     end
 
     def recompute(*attributes)
+      options = attributes.last.is_a?(Hash) ? attributes.pop : {}
+
       p "#{self.class.name}: recompute: #{attributes}"
       computed_attributes = self.class.computed_attributes
       attributes_to_compute =
@@ -45,7 +47,13 @@ module ComputedAttribute
             self.class.computed_attributes.find { |computed| computed.attribute == attr }
           end
         end
-      attributes_to_compute.each { |attribute| attribute.recompute_on(self) }
+
+      # TODO: using `compact` here b/c there's a situation with polymorphic associations hooking onto someone else's association. Should diagnose/fix the real problem instead of this hack.
+      attributes_to_compute = attributes_to_compute.compact
+      if options[:depends].present?
+        attributes_to_compute = attributes_to_compute.select { |attribute| attribute.depends?(options[:depends]) }
+      end
+      attributes_to_compute.compact.each { |attribute| attribute.recompute_on(self) }
     end
   end
 end

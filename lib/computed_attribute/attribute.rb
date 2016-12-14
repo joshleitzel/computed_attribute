@@ -1,6 +1,6 @@
 module ComputedAttribute
   class Attribute
-    attr_reader :attribute, :dependencies, :model, :reflection
+    attr_reader :attribute, :dependencies, :deps, :model, :reflection
 
     def initialize(attribute, options = {})
       if attribute == :all
@@ -8,7 +8,7 @@ module ComputedAttribute
       end
 
       @attribute = attribute
-      @dependencies = options[:depends]
+      @dependencies = Array(options[:depends])
       @model = options[:model]
     end
 
@@ -21,6 +21,7 @@ module ComputedAttribute
     end
 
     def set_up
+      p "Wiring up attribute #{attribute}..."
       computed_method_name = "computed_#{attribute}"
       unless model_klass.instance_methods.include?(computed_method_name.to_sym)
         raise NoMethodError, "Assigned computed attribute `#{attribute}`, "\
@@ -28,21 +29,21 @@ module ComputedAttribute
       end
 
       return unless dependencies.present?
-      Array(dependencies).each do |dep|
+
+      @deps = dependencies.map do |dep|
         association = model_associations.find { |assoc| assoc.name == dep }
         raise "Association #{dep} not found" if association.nil?
         klass = model_klass
         p "#{klass}: wiring up association #{dep}: #{association}"
 
-        @reflection =
-          case association
-          when ActiveRecord::Reflection::BelongsToReflection
-            BelongsToReflection.new(attribute: attribute, host: klass, association: association).set_up
-          when ActiveRecord::Reflection::HasManyReflection, ActiveRecord::Reflection::HasOneReflection
-            HasReflection.new(attribute: attribute, host: klass, association: association).set_up
-          when ActiveRecord::Reflection::ThroughReflection
-            ThroughReflection.new(attribute: attribute, host: klass, association: association).set_up
-          end
+        case association
+        when ActiveRecord::Reflection::BelongsToReflection
+          BelongsToReflection.new(attribute: attribute, host: klass, association: association).set_up
+        when ActiveRecord::Reflection::HasManyReflection, ActiveRecord::Reflection::HasOneReflection
+          HasReflection.new(attribute: attribute, host: klass, association: association).set_up
+        when ActiveRecord::Reflection::ThroughReflection
+          ThroughReflection.new(attribute: attribute, host: klass, association: association).set_up
+        end
       end
     end
 
@@ -52,6 +53,10 @@ module ComputedAttribute
       update_options[attribute] = value
       record.update_columns(update_options)
       p "#{self.class.name}: updated #{attribute}: #{value}"
+    end
+
+    def depends?(association_name)
+      dependencies.include?(association_name)
     end
   end
 end

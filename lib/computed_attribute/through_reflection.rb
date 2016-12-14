@@ -25,6 +25,8 @@ module ComputedAttribute
 
       opposite_class.after_save(cb.call(host, opposite_name, attribute))
       opposite_class.after_destroy(cb.call(host, opposite_name, attribute))
+
+      self
     end
   end
 end
