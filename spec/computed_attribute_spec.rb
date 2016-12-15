@@ -1,6 +1,8 @@
 require 'spec_helper'
 
 describe ComputedAttribute do
+  # before { ComputedAttribute::Log.log_level = :debug }
+
   it 'has a version number' do
     expect(ComputedAttribute::VERSION).not_to be nil
   end

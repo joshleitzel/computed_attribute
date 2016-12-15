@@ -3,11 +3,11 @@ require 'computed_attribute/reflection'
 module ComputedAttribute
   class HasReflection < Reflection
     def set_up
-      p "#{host} (has): add child callbacks: #{opposite_class.name}"
+      Log.log("#{host} (has): add child callbacks: #{opposite_class.name}")
 
       cb = proc do |klass, host_name, attribute|
         proc do
-          p "#{klass}: child #{self.class} saved (host: #{host_name}, attribute: #{attribute})"
+          Log.log("#{klass}: child #{self.class} saved (host: #{host_name}, attribute: #{attribute})")
           host = send(host_name)
           host.reload.recompute(attribute) if host.present?
         end

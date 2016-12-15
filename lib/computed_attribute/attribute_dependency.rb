@@ -9,7 +9,7 @@ module ComputedAttribute
     end
 
     def set_up
-      p "#{host}: (attribute) add host callbacks: #{dependent_attribute}"
+      Log.log("#{host}: (attribute) add host callbacks: #{dependent_attribute}")
 
       callback = proc do |attribute, dependent_attribute|
         proc do

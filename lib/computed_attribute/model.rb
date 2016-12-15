@@ -18,11 +18,11 @@ module ComputedAttribute
     def set_up
       model_name = klass.name.demodulize.underscore
 
-      p "#{klass}: set up #{model_name}"
+      Log.log("#{klass}: set up #{model_name}")
 
       cb = proc do |klass|
         proc do |host|
-          p "#{klass}: host #{model_name} created"
+          Log.log("#{klass}: host #{model_name} created")
           host.recompute(:all)
         end
       end

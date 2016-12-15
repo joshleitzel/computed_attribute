@@ -3,11 +3,11 @@ require 'computed_attribute/reflection'
 module ComputedAttribute
   class BelongsToReflection < Reflection
     def set_up
-      p "#{host}: (belongs_to) add host callbacks: #{association.class_name}"
+      Log.log("#{host}: (belongs_to) add host callbacks: #{association.class_name}")
 
       cb = proc do |klass, host_name, attribute|
         proc do
-          p "#{klass}: parent #{self.class} saved (host: #{host_name})"
+          Log.log("#{klass}: parent #{self.class} saved (host: #{host_name})")
           host = Array((destroyed? ? self : reload).send(host_name))
           Array(host).each do |record|
             record.reload.recompute(attribute)

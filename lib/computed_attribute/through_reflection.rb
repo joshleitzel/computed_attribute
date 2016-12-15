@@ -13,11 +13,11 @@ module ComputedAttribute
     def set_up
       grandchild_class = association.klass
       child_class = association.through_reflection.klass
-      p "#{host} (through): add child callbacks: #{child_class} -> #{grandchild_class}"
+      Log.log("#{host} (through): add child callbacks: #{child_class} -> #{grandchild_class}")
 
       cb = proc do |klass, host_name, attribute|
         proc do
-          p "#{klass}: child #{self.class} saved (host: #{host_name})"
+          Log.log("#{klass}: child #{self.class} saved (host: #{host_name})")
           host = send(host_name)
           host.reload.recompute(attribute) if host.present?
         end

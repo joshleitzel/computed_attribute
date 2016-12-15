@@ -3,11 +3,11 @@ require 'computed_attribute/reflection'
 module ComputedAttribute
   class HasAndBelongsToManyReflection < Reflection
     def set_up
-      p "#{host} (habtm): add child callbacks: #{opposite_class.name}"
+      Log.log("#{host} (habtm): add child callbacks: #{opposite_class.name}")
 
       cb = proc do |klass, host_name, attribute, type, cache|
         proc do
-          p "#{klass}: child #{self.class} #{type} (host: #{host_name}, attribute: #{attribute})"
+          Log.log("#{klass}: child #{self.class} #{type} (host: #{host_name}, attribute: #{attribute})")
           hosts = send(host_name)
           hosts = hosts.present? ? Array(hosts) : cache[host_name]
           hosts.each do |host|

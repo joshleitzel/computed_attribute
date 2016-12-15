@@ -32,7 +32,8 @@ module ComputedAttribute
     end
 
     def set_up
-      p "Wiring up attribute #{attribute}..."
+      Log.log("Wiring up attribute #{attribute}...")
+
       computed_method_name = "computed_#{attribute}"
       unless model_klass.instance_methods.include?(computed_method_name.to_sym)
         raise NoMethodError, "Assigned computed attribute `#{attribute}`, "\
@@ -50,7 +51,7 @@ module ComputedAttribute
         dependency = model_associations.find { |assoc| assoc.name == dep } || model_attributes.find { |attribute| attribute == dep }
         raise "Association or attribute #{dep} not found" if dependency.nil?
         klass = model_klass
-        p "#{klass}: wiring up dependency #{dep}: #{dependency}"
+        Log.log("#{klass}: wiring up dependency #{dep}: #{dependency}")
 
         case dependency
         when ActiveRecord::Reflection::BelongsToReflection
@@ -74,7 +75,7 @@ module ComputedAttribute
       value = record.send("computed_#{attribute}")
       update_options[attribute] = value
       record.update_columns(update_options)
-      p "#{self.class.name}: updated #{attribute}: #{value}"
+      Log.log("#{self.class.name}: updated #{attribute}: #{value}")
     end
 
     def depends?(association_name)

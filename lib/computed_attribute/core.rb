@@ -1,5 +1,6 @@
 require 'active_support'
 require 'computed_attribute/model'
+require 'computed_attribute/log'
 
 module ComputedAttribute
   module Core
@@ -37,7 +38,8 @@ module ComputedAttribute
     def recompute(*attributes)
       options = attributes.last.is_a?(Hash) ? attributes.pop : {}
 
-      p "#{self.class.name}: recompute: #{attributes}"
+      Log.log("#{self.class.name}: recompute: #{attributes}")
+
       computed_attributes = self.class.computed_attributes
       attributes_to_compute =
         if attributes == [:all]
