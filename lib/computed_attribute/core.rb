@@ -48,7 +48,9 @@ module ComputedAttribute
           end
         end
 
-      # TODO: using `compact` here b/c there's a situation with polymorphic associations hooking onto someone else's association. Should diagnose/fix the real problem instead of this hack.
+      # TODO: using `compact` here b/c there's a situation with polymorphic associations
+      # hooking onto someone else's association. Should diagnose/fix the real problem
+      # instead of this hack.
       attributes_to_compute = attributes_to_compute.compact
       if options[:depends].present?
         attributes_to_compute = attributes_to_compute.select { |attribute| attribute.depends?(options[:depends]) }

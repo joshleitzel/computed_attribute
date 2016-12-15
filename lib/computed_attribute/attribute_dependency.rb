@@ -13,9 +13,7 @@ module ComputedAttribute
 
       callback = proc do |attribute, dependent_attribute|
         proc do
-          if send("#{dependent_attribute}_changed?")
-            recompute(attribute)
-          end
+          recompute(attribute) if send("#{dependent_attribute}_changed?")
         end
       end
       host.after_save(callback.call(attribute, dependent_attribute))

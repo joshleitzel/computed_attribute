@@ -1,5 +1,5 @@
 Metrics/LineLength:
-  Max: 100
+  Max: 150
   Severity: refactor
 Metrics/AbcSize:
   Max: 300

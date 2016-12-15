@@ -19,7 +19,7 @@ module ComputedAttribute
       opposite_class.after_commit(cb.call(host, opposite_name, attribute, 'commit', pre_destroy_cache))
       before_destroy = proc do |host_name, cache|
         proc do
-          cache[host_name]  = send(host_name).to_a
+          cache[host_name] = send(host_name).to_a
         end
       end
       opposite_class.before_destroy(before_destroy.call(opposite_name, pre_destroy_cache))
