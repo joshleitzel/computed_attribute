@@ -14,6 +14,21 @@ describe ComputedAttribute do
     end
   end
 
+  describe 'model depends on attribute' do
+    it 'updates when model created and saved' do
+      planet = Planet.create(radius: 3958)
+      expect(planet.diameter).to eq(7916)
+      planet.update(radius: 4500)
+      expect(planet.reload.diameter).to eq(9000)
+    end
+
+    it 'does not update if the attribute has not changed' do
+      planet = Planet.create(radius: 3958)
+      expect(planet).to_not receive(:recompute).with(:diameter)
+      planet.save
+    end
+  end
+
   describe 'has_many' do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create

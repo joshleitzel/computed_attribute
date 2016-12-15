@@ -11,6 +11,10 @@ module ComputedAttribute
       @associations ||= klass.reflect_on_all_associations.sort_by(&:name)
     end
 
+    def attribute_names
+      klass.column_names.map(&:to_sym)
+    end
+
     def set_up
       model_name = klass.name.demodulize.underscore
 

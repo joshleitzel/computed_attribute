@@ -1,6 +1,6 @@
 # computed_attribute
 
-ComputedAttribute adds cached attributes to ActiveRecord models and automatically updates them, allowing you to cut down on expensive database queries by storing computed attributes directly in the record. Attributes can auto-update based on a model's associations or other attributes.
+ComputedAttribute adds cached attributes to ActiveRecord models and automatically updates them, allowing you to cut down on expensive database queries by storing computed attributes directly in the record. Attributes can auto-update based on a model’s associations or other attributes.
 
 ## Status
 This is alpha software and is being actively developed. That said, I’ve been using it on production in a large Rails app without a hitch. Bug reports and pull requests are welcome!
@@ -12,7 +12,7 @@ This is alpha software and is being actively developed. That said, I’ve been u
 
 ## Installation
 
-Add this line to your application's Gemfile:
+Add this line to your application’s Gemfile:
 
 ```ruby
 gem 'computed_attribute'
@@ -51,7 +51,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-When one of this order's `logs` are created, saved, or deleted, `:completed` will automatically be re-calculated:
+When one of this order’s `logs` are created, saved, or deleted, `:completed` will automatically be re-calculated:
 
 ```ruby
 order = Order.new
@@ -65,11 +65,11 @@ order.completed #=> false
 That’s all there is to it!
 
 ### Model attributes
-For attributes that depend not on associations but on *other* attributes of the model, use the `save: true` option to have the attribute auto-update when the model itself is saved:
+You can pass attribute names to the `depends:` option as well. For example if you’ve got a column named `radius` you can specify a compute attribute `diameter` that will update only when the model’s `radius` changes:
 
 ```ruby
 class Circle < ActiveRecord::Base
-  computed_attribute :circumference, save: true
+  computed_attribute :circumference, depends: :radius
 
   def computed_circumference
     return 0 if radius.nil?

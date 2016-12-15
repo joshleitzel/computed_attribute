@@ -19,6 +19,10 @@ module ComputedAttribute
       model.associations
     end
 
+    def model_attributes
+      model.attribute_names
+    end
+
     def model
       options[:model]
     end
@@ -43,22 +47,24 @@ module ComputedAttribute
       end
 
       @deps = dependencies.map do |dep|
-        association = model_associations.find { |assoc| assoc.name == dep }
-        raise "Association #{dep} not found" if association.nil?
+        dependency = model_associations.find { |assoc| assoc.name == dep } || model_attributes.find { |attribute| attribute == dep }
+        raise "Association or attribute #{dep} not found" if dependency.nil?
         klass = model_klass
-        p "#{klass}: wiring up association #{dep}: #{association}"
+        p "#{klass}: wiring up dependency #{dep}: #{dependency}"
 
-        case association
+        case dependency
         when ActiveRecord::Reflection::BelongsToReflection
-          BelongsToReflection.new(attribute: attribute, host: klass, association: association).set_up
+          BelongsToReflection.new(attribute: attribute, host: klass, association: dependency).set_up
         when ActiveRecord::Reflection::HasManyReflection, ActiveRecord::Reflection::HasOneReflection
-          HasReflection.new(attribute: attribute, host: klass, association: association).set_up
+          HasReflection.new(attribute: attribute, host: klass, association: dependency).set_up
         when ActiveRecord::Reflection::ThroughReflection
-          ThroughReflection.new(attribute: attribute, host: klass, association: association).set_up
+          ThroughReflection.new(attribute: attribute, host: klass, association: dependency).set_up
         when ActiveRecord::Reflection::HasAndBelongsToManyReflection
-          HasAndBelongsToManyReflection.new(attribute: attribute, host: klass, association: association).set_up
+          HasAndBelongsToManyReflection.new(attribute: attribute, host: klass, association: dependency).set_up
+        when Symbol
+          AttributeDependency.new(attribute: attribute, host: klass, dependent_attribute: dependency).set_up
         else
-          raise NotImplementedError, "Don't know what to do with #{association.class}"
+          raise NotImplementedError, "Don't know what to do with #{dependency.class}"
         end
       end
     end

@@ -119,6 +119,7 @@ class Planet < Model
   computed_attribute :gravitational_field_radius_sum, depends: :gravitational_fields
   computed_attribute :thing_size, depends: :things
   computed_attribute :circumference, save: true
+  computed_attribute :diameter, depends: :radius
 
   def computed_star_classification
     gas_ball.try(:classification)
@@ -139,6 +140,11 @@ class Planet < Model
   def computed_circumference
     return 0 if radius.nil?
     ((radius * 2) * Math::PI).to_i
+  end
+
+  def computed_diameter
+    return 0 if radius.nil?
+    radius * 2
   end
 end
 
