@@ -22,7 +22,7 @@ module ComputedAttribute
           host.recompute(:all)
         end
       end
-      klass.after_create(cb.call(klass))
+      klass.after_commit(cb.call(klass))
 
       attributes.each(&:set_up)
     end

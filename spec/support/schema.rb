@@ -37,6 +37,7 @@ ActiveRecord::Schema.define do
     t.integer :stratosphere_height
     t.integer :gravitational_id
     t.integer :gravitational_field_radius_sum
+    t.integer :thing_size
     t.timestamps
   end
 
@@ -71,6 +72,17 @@ ActiveRecord::Schema.define do
     t.integer :radius
     t.boolean :emanates_from_planet
     t.boolean :has_star
+    t.timestamps
+  end
+
+  create_table :things, force: true do |t|
+    t.integer :size
+    t.timestamps
+  end
+
+  create_table :planets_things, force: true do |t|
+    t.integer :planet_id
+    t.integer :thing_id
     t.timestamps
   end
 end

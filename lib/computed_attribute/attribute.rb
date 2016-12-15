@@ -43,6 +43,10 @@ module ComputedAttribute
           HasReflection.new(attribute: attribute, host: klass, association: association).set_up
         when ActiveRecord::Reflection::ThroughReflection
           ThroughReflection.new(attribute: attribute, host: klass, association: association).set_up
+        when ActiveRecord::Reflection::HasAndBelongsToManyReflection
+          HasAndBelongsToManyReflection.new(attribute: attribute, host: klass, association: association).set_up
+        else
+          raise NotImplementedError, "Don't know what to do with #{association.class}"
         end
       end
     end

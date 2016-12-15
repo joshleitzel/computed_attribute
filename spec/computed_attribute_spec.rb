@@ -311,4 +311,36 @@ describe ComputedAttribute do
       expect(gravitational_field.reload.has_star?).to eq(false)
     end
   end
+
+  describe 'has_and_belongs_to_many' do
+    it 'updates when parent created' do
+      planet = Planet.create(things: [Thing.new(size: 3), Thing.new(size: 4)])
+      expect(planet.reload.thing_size).to eq(7)
+    end
+
+    it 'updates when parent saved' do
+      thing = Thing.new(size: 4)
+      thing2 = Thing.new(size: 5)
+      planet = Planet.create(things: [thing])
+      expect(planet.reload.thing_size).to eq(4)
+      planet.things << thing2
+      expect(planet.reload.thing_size).to eq(9)
+    end
+
+    it 'updates when child saved' do
+      thing = Thing.new(size: 4)
+      planet = Planet.create(things: [thing])
+      expect(planet.reload.thing_size).to eq(4)
+      thing.update(size: 5)
+      expect(planet.reload.thing_size).to eq(5)
+    end
+
+    it 'updates when child destroyed' do
+      thing = Thing.new(size: 4)
+      planet = Planet.create(things: [thing])
+      expect(planet.reload.thing_size).to eq(4)
+      thing.destroy
+      expect(planet.reload.thing_size).to eq(0)
+    end
+  end
 end
