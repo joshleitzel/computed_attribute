@@ -1,9 +1,9 @@
 # computed_attribute
 
-ComputedAttribute adds cached attributes to ActiveRecord models and automatically updates them when their values change through a model’s associations. It allows you to cut down on expensive database queries by storing computed attributes directly in the record.
+ComputedAttribute adds cached attributes to ActiveRecord models and automatically updates them, allowing you to cut down on expensive database queries by storing computed attributes directly in the record. Attributes can auto-update based on a model's associations or other attributes.
 
 ## Status
-This is alpha software and is being actively developed. That said, we’ve been using it on production in a large Rails app without a hitch. Bug reports and pull requests are welcome!
+This is alpha software and is being actively developed. That said, I’ve been using it on production in a large Rails app without a hitch. Bug reports and pull requests are welcome!
 
 ## Features
 * Works with all ActiveRecord association types
@@ -28,11 +28,14 @@ Or install it yourself as:
 
 ## Usage
 
-3 simple steps are required to wire up a computed attribute:
+All computed attributes are stored in a column on your model’s database table:
 
 1. Add a database column to store the value (e.g. `completed_at`)
 2. Include the module in your model and use the `computed_attribute` method to define the attribute
 3. Add a `computed_{attribute_name}` method to your model that will be used to calculate the value
+
+### Association attributes
+For attributes that are calculated based on a model’s associations, use the `depends:` option to specify which associations this attribute depends on:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -48,7 +51,7 @@ class Order < ActiveRecord::Base
 end
 ```
 
-Because we’ve indicated that the `completed` attribute depends on the `logs` association, ComputedAttribute will automatically re-calculate its value when any of the `Order`’s `logs` change or are added/deleted:
+When one of this order's `logs` are created, saved, or deleted, `:completed` will automatically be re-calculated:
 
 ```ruby
 order = Order.new
@@ -59,7 +62,24 @@ order.logs.destroy_all
 order.completed #=> false
 ```
 
-That’s all there is to it if your attributes are calculated based on the model’s associations. If there’s some non-association state that influences the attribute, you can re-calculate it manually using the `recompute` method:
+That’s all there is to it!
+
+### Model attributes
+For attributes that depend not on associations but on *other* attributes of the model, use the `save: true` option to have the attribute auto-update when the model itself is saved:
+
+```ruby
+class Circle < ActiveRecord::Base
+  computed_attribute :circumference, save: true
+
+  def computed_circumference
+    return 0 if radius.nil?
+    radius * 2 * Math::PI
+  end
+end
+```
+
+### Manual updates
+If you have an attribute that depends on something external from your model, you can manually re-calculate it at any time using the `recompute` method:
 
 ```ruby
 Order.recompute(:all) # recompute all computed attributes on all orders
@@ -78,7 +98,7 @@ To install this gem onto your local machine, run `bundle exec rake install`. To 
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/computed_attribute. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
+Bug reports and pull requests are welcome on GitHub at https://github.com/joshleitzel/computed_attribute. This project is intended to be a safe, welcoming space for collaboration, and contributors are expected to adhere to the [Contributor Covenant](http://contributor-covenant.org) code of conduct.
 
 ## License
 

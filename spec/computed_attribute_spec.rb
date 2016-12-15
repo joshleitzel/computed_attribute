@@ -5,6 +5,15 @@ describe ComputedAttribute do
     expect(ComputedAttribute::VERSION).not_to be nil
   end
 
+  describe 'model itself saved' do
+    it 'updates when model created and saved' do
+      planet = Planet.create(radius: 3958)
+      expect(planet.circumference).to eq(24_868)
+      planet.update(radius: 4500)
+      expect(planet.reload.circumference).to eq(28_274)
+    end
+  end
+
   describe 'has_many' do
     it 'does not make duplicate recompute calls' do
       galaxy = Galaxy.create

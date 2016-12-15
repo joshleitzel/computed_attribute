@@ -38,6 +38,8 @@ ActiveRecord::Schema.define do
     t.integer :gravitational_id
     t.integer :gravitational_field_radius_sum
     t.integer :thing_size
+    t.decimal :radius
+    t.integer :circumference
     t.timestamps
   end
 

@@ -108,7 +108,6 @@ end
 class Planet < Model
   include ComputedAttribute::Core
   belongs_to :gas_ball, class_name: 'Star', inverse_of: :rocks
-  #has_and_belongs_to_many :neighbors
   has_many :moons
   has_one :atmosphere
   has_one :stratosphere, through: :atmosphere
@@ -119,6 +118,7 @@ class Planet < Model
   computed_attribute :stratosphere_height, depends: :stratosphere
   computed_attribute :gravitational_field_radius_sum, depends: :gravitational_fields
   computed_attribute :thing_size, depends: :things
+  computed_attribute :circumference, save: true
 
   def computed_star_classification
     gas_ball.try(:classification)
@@ -135,9 +135,12 @@ class Planet < Model
   def computed_thing_size
     things.sum(:size)
   end
-end
 
-class Neighbor < Model; end
+  def computed_circumference
+    return 0 if radius.nil?
+    ((radius * 2) * Math::PI).to_i
+  end
+end
 
 class Moon < Model
   belongs_to :planet

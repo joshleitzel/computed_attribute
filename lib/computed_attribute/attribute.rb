@@ -1,6 +1,6 @@
 module ComputedAttribute
   class Attribute
-    attr_reader :attribute, :dependencies, :deps, :model, :reflection
+    attr_reader :attribute, :deps, :options, :reflection
 
     def initialize(attribute, options = {})
       if attribute == :all
@@ -8,8 +8,7 @@ module ComputedAttribute
       end
 
       @attribute = attribute
-      @dependencies = Array(options[:depends])
-      @model = options[:model]
+      @options = options
     end
 
     def model_klass
@@ -20,6 +19,14 @@ module ComputedAttribute
       model.associations
     end
 
+    def model
+      options[:model]
+    end
+
+    def dependencies
+      Array(options[:depends])
+    end
+
     def set_up
       p "Wiring up attribute #{attribute}..."
       computed_method_name = "computed_#{attribute}"
@@ -28,7 +35,12 @@ module ComputedAttribute
           "but no method called `#{computed_method_name}` found"
       end
 
-      return unless dependencies.present?
+      if options[:save]
+        after_save = proc do |attribute|
+          proc { recompute(attribute) }
+        end
+        model_klass.after_save(after_save.call(attribute))
+      end
 
       @deps = dependencies.map do |dep|
         association = model_associations.find { |assoc| assoc.name == dep }
