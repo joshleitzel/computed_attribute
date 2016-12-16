@@ -75,7 +75,7 @@ module ComputedAttribute
       value = record.send("computed_#{attribute}")
       update_options[attribute] = value
       record.update_columns(update_options)
-      Log.log("#{self.class.name}: updated #{attribute}: #{value}")
+      Log.log("#{record.class.name}: updated #{attribute}: #{value}")
     end
 
     def depends?(association_name)

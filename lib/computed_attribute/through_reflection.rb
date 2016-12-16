@@ -26,6 +26,27 @@ module ComputedAttribute
       opposite_class.after_save(cb.call(host, opposite_name, attribute))
       opposite_class.after_destroy(cb.call(host, opposite_name, attribute))
 
+      inverse = association.through_reflection.inverse_of
+      inverse_name = inverse.name
+
+      grandchild_cb = proc do |attribute|
+        proc do
+          reload unless destroyed?
+
+          reflection = self.class.reflect_on_all_associations.find do |assoc|
+            assoc.belongs_to? && assoc.klass == child_class
+          end
+
+          reflection_obj = send(reflection.name)
+          if reflection_obj.present?
+            reflection_obj.reload.send(inverse_name).try(:recompute, attribute)
+          end
+        end
+      end
+
+      grandchild_class.after_save(grandchild_cb.call(attribute))
+      grandchild_class.after_destroy(grandchild_cb.call(attribute))
+
       self
     end
   end
