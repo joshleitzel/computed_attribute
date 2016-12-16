@@ -71,7 +71,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :gravitational_fields, force: true do |t|
-    t.references :gravitational, polymorphic: true
+    t.references :gravitational, polymorphic: true, index: false
     t.integer :radius
     t.boolean :emanates_from_planet
     t.boolean :has_star
