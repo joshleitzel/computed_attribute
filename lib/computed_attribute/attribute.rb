@@ -28,7 +28,7 @@ module ComputedAttribute
     end
 
     def dependencies
-      Array(options[:depends])
+      Array(options[:uses])
     end
 
     def set_up
@@ -78,7 +78,7 @@ module ComputedAttribute
       Log.log("#{record.class.name}: updated #{attribute}: #{value}")
     end
 
-    def depends?(association_name)
+    def uses?(association_name)
       dependencies.include?(association_name)
     end
   end

@@ -21,7 +21,7 @@ module ComputedAttribute
           proc do
             ass = send(association_name)
             if ass.present?
-              Array(ass).each { |a| a.recompute(:all, depends: polymorphic_id) }
+              Array(ass).each { |a| a.recompute(:all, uses: polymorphic_id) }
             end
           end
         end

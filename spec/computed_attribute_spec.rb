@@ -14,7 +14,7 @@ describe ComputedAttribute do
     end
   end
 
-  describe 'model depends on attribute' do
+  describe 'model uses on attribute' do
     it 'updates when model created and saved' do
       planet = Planet.create(radius: 3958)
       expect(planet.diameter).to eq(7916)

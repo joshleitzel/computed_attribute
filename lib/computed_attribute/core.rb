@@ -54,8 +54,8 @@ module ComputedAttribute
       # hooking onto someone else's association. Should diagnose/fix the real problem
       # instead of this hack.
       attributes_to_compute = attributes_to_compute.compact
-      if options[:depends].present?
-        attributes_to_compute = attributes_to_compute.select { |attribute| attribute.depends?(options[:depends]) }
+      if options[:uses].present?
+        attributes_to_compute = attributes_to_compute.select { |attribute| attribute.uses?(options[:uses]) }
       end
       attributes_to_compute.compact.each { |attribute| attribute.recompute_on(self) }
     end

@@ -9,11 +9,11 @@ class Galaxy < Model
   has_many :holes, class_name: 'BlackHole'
   has_many :points_of_no_return, through: :holes, source: :event_horizon
 
-  computed_attribute :star_count, depends: :stars
-  computed_attribute :red_dwarf_count, depends: :stars
-  computed_attribute :solar_system_count, depends: :solar_systems
-  computed_attribute :black_hole_count, depends: :holes
-  computed_attribute :horizon_count, depends: :points_of_no_return
+  computed_attribute :star_count, uses: :stars
+  computed_attribute :red_dwarf_count, uses: :stars
+  computed_attribute :solar_system_count, uses: :solar_systems
+  computed_attribute :black_hole_count, uses: :holes
+  computed_attribute :horizon_count, uses: :points_of_no_return
 
   def computed_star_count
     stars.count
@@ -50,8 +50,8 @@ class SolarSystem < Model
   belongs_to :galaxy
   has_one :star, inverse_of: :system
 
-  computed_attribute :galaxy_name, depends: :galaxy
-  computed_attribute :star_classification, depends: :star
+  computed_attribute :galaxy_name, uses: :galaxy
+  computed_attribute :star_classification, uses: :star
 
   def computed_galaxy_name
     galaxy.try(:name)
@@ -66,8 +66,8 @@ class GravitationalField < Model
   include ComputedAttribute::Core
   belongs_to :gravitational, polymorphic: true
 
-  computed_attribute :emanates_from_planet, depends: :gravitational
-  computed_attribute :has_star, depends: :gravitational
+  computed_attribute :emanates_from_planet, uses: :gravitational
+  computed_attribute :has_star, uses: :gravitational
 
   def computed_emanates_from_planet
     gravitational.is_a?(Planet)
@@ -84,9 +84,9 @@ class Star < Model
   has_many :rocks, class_name: 'Planet', foreign_key: 'gas_ball_id', inverse_of: :gas_ball
   has_one :gravitational_field, as: :gravitational
 
-  computed_attribute :system_sector, depends: :system
-  computed_attribute :gas_giant_count, depends: :rocks
-  computed_attribute :gravitational_field_radius, depends: :gravitational_field
+  computed_attribute :system_sector, uses: :system
+  computed_attribute :gas_giant_count, uses: :rocks
+  computed_attribute :gravitational_field_radius, uses: :gravitational_field
 
   def computed_system_sector
     system.try(:sector)
@@ -114,12 +114,12 @@ class Planet < Model
   has_many :gravitational_fields, as: :gravitational
   has_and_belongs_to_many :things
 
-  computed_attribute :star_classification, depends: :gas_ball
-  computed_attribute :stratosphere_height, depends: :stratosphere
-  computed_attribute :gravitational_field_radius_sum, depends: :gravitational_fields
-  computed_attribute :thing_size, depends: :things
+  computed_attribute :star_classification, uses: :gas_ball
+  computed_attribute :stratosphere_height, uses: :stratosphere
+  computed_attribute :gravitational_field_radius_sum, uses: :gravitational_fields
+  computed_attribute :thing_size, uses: :things
   computed_attribute :circumference, save: true
-  computed_attribute :diameter, depends: :radius
+  computed_attribute :diameter, uses: :radius
 
   def computed_star_classification
     gas_ball.try(:classification)

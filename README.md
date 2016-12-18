@@ -36,7 +36,7 @@ All computed attributes are stored in a column on your model’s database table:
 3. Add a `computed_{attribute_name}` method to your model that will be used to calculate the value
 
 ### Association attributes
-For attributes that are calculated based on a model’s associations, use the `depends:` option to specify which associations this attribute depends on:
+For attributes that are calculated based on a model’s associations, use the `uses:` option to specify which associations this attribute uses on:
 
 ```ruby
 class Order < ActiveRecord::Base
@@ -44,7 +44,7 @@ class Order < ActiveRecord::Base
 
   has_many :logs
 
-  computed_attribute :completed, depends: :logs
+  computed_attribute :completed, uses: :logs
 
   def computed_completed
     logs.find_by { |log| log.key == :completed }.present?
@@ -66,11 +66,11 @@ order.completed #=> false
 That’s all there is to it!
 
 ### Model attributes
-You can pass attribute names to the `depends:` option as well. For example if you’ve got a column named `radius` you can specify a compute attribute `diameter` that will update only when the model’s `radius` changes:
+You can pass attribute names to the `uses:` option as well. For example if you’ve got a column named `radius` you can specify a compute attribute `diameter` that will update only when the model’s `radius` changes:
 
 ```ruby
 class Circle < ActiveRecord::Base
-  computed_attribute :circumference, depends: :radius
+  computed_attribute :circumference, uses: :radius
 
   def computed_circumference
     return 0 if radius.nil?
@@ -80,7 +80,7 @@ end
 ```
 
 ### Manual updates
-If you have an attribute that depends on something external from your model, you can manually re-calculate it at any time using the `recompute` method:
+If you have an attribute that uses on something external from your model, you can manually re-calculate it at any time using the `recompute` method:
 
 ```ruby
 Order.recompute(:all) # recompute all computed attributes on all orders
